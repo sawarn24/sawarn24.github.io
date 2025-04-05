@@ -11,6 +11,7 @@ def create_tables():
     conn = get_db_connection()
     cur = conn.cursor()
     try:
+        # Users table
         cur.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
@@ -19,8 +20,47 @@ def create_tables():
                 role VARCHAR(50) NOT NULL
             )
         """)
+        
+        # Labs table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS labs (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL
+            )
+        """)
+        
+        # Computers table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS computers (
+                id SERIAL PRIMARY KEY,
+                lab_id INT REFERENCES labs(id) ON DELETE CASCADE,
+                code VARCHAR(255) NOT NULL,
+                working_condition BOOLEAN DEFAULT TRUE
+            )
+        """)
+        
+        # Software table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS software (
+                id SERIAL PRIMARY KEY,
+                computer_id INT REFERENCES computers(id) ON DELETE CASCADE,
+                name VARCHAR(255) NOT NULL
+            )
+        """)
+        
+        # Inventory items table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS inventory_items (
+                id SERIAL PRIMARY KEY,
+                item_name VARCHAR(255) NOT NULL,
+                current_stock INT NOT NULL,
+                threshold_stock INT NOT NULL,
+                last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
         conn.commit()
-        print("Tables created successfully")
+        print("All tables created successfully")
     except Exception as e:
         print("Error creating tables:", e)
     finally:
@@ -294,24 +334,7 @@ def update_computer_condition(computer_id: int, update: ComputerConditionUpdate)
     finally:
         cur.close()
         conn.close()
-def create_tables():
-        conn = get_db_connection()
-        cur = conn.cursor()
-        try:
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS software (
-                    id SERIAL PRIMARY KEY,
-                    computer_id INT REFERENCES computers(id) ON DELETE CASCADE,
-                    name VARCHAR(255) NOT NULL
-                )
-            """)
-            conn.commit()
-            print("Software table created successfully")
-        except Exception as e:
-            print("Error creating software table:", e)
-        finally:
-            cur.close()
-            conn.close()
+
 class SoftwareCreate(BaseModel):
     name: str
 
@@ -365,29 +388,6 @@ def delete_software(software_id: int):
 from typing import Optional
 
 # Add this to your create_tables function
-def create_tables():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    try:
-        # Your existing table creation code...
-        
-        # Add inventory table creation
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS inventory_items (
-                id SERIAL PRIMARY KEY,
-                item_name VARCHAR(255) NOT NULL,
-                current_stock INT NOT NULL,
-                threshold_stock INT NOT NULL,
-                last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        conn.commit()
-        print("Tables created successfully including inventory_items")
-    except Exception as e:
-        print("Error creating tables:", e)
-    finally:
-        cur.close()
-        conn.close()
 
 # Pydantic models for inventory items
 class InventoryItemCreate(BaseModel):
